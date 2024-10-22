@@ -52,25 +52,19 @@ def check_and_download():
         "sd-vae-ft-mse/config.json",
     ]
 
-    missing = False
     for model_path in model_paths:
-        model_path = os.path.join(PROJECT_DIR, model_path)
-        if not os.path.exists(model_path):
-            missing = True
-            break
+        local_model_path = os.path.join(PROJECT_DIR, "pretrained_weights", model_path)
+        if not os.path.exists(local_model_path):
+            local_base_dir = os.path.dirname(local_model_path)
+            os.makedirs(local_base_dir, exist_ok=True)
 
-    if not missing:
-        return
-
-    print("Downloading pretrained model...")
-
-    shutil.rmtree(os.path.join(PROJECT_DIR, "pretrained_weights"), ignore_errors=True)
-
-    snapshot_download(
-        repo_id="hoveyc/musepose",
-        local_dir=os.path.join(PROJECT_DIR, "pretrained_weights"),
-        local_dir_use_symlinks=False,
-    )
+            print(f"Downloading pretrained model... {model_path}")
+            snapshot_download(
+                repo_id="hoveyc/musepose",
+                allow_patterns=[model_path],
+                local_dir=os.path.join(PROJECT_DIR, "pretrained_weights"),
+                local_dir_use_symlinks=False,
+            )
 
 
 class MusePoseGetPoses:
@@ -121,29 +115,6 @@ class MusePoseGetPoses:
         yolo_model = "yolox_l.torchscript.pt"
 
         model_base_path = os.path.join(PROJECT_DIR, "pretrained_weights", "dwpose")
-
-        model_det = os.path.join(model_base_path, yolo_model)
-        model_pose = os.path.join(model_base_path, dw_pose_model)
-
-        if not os.path.exists(model_det):
-            print(f"Downloading YOLOX model... {model_det}")
-
-            snapshot_download(
-                repo_id="hr16/yolox-onnx",
-                allow_patterns=[f"*{yolo_model}*"],
-                local_dir=model_base_path,
-                local_dir_use_symlinks=False,
-            )
-
-        if not os.path.exists(model_pose):
-            print(f"Downloading DWpose model... {model_pose}")
-
-            snapshot_download(
-                repo_id="hr16/DWPose-TorchScript-BatchSize5",
-                allow_patterns=[f"*{dw_pose_model}*"],
-                local_dir=model_base_path,
-                local_dir_use_symlinks=False,
-            )
 
         model_det = os.path.join(model_base_path, yolo_model)
         model_pose = os.path.join(model_base_path, dw_pose_model)
